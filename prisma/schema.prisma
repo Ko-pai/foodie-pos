@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String?
+  company    Company  @relation(fields: [companyId], references: [id])
+  companyId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  isArchived Boolean  @default(false)
+}
+
+model Company {
+  id           Int            @id @default(autoincrement())
+  name         String
+  street       String?
+  township     String?
+  city         String?
+  Location     Location[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now())
+  isArchived   Boolean        @default(false)
+  MenuCategory MenuCategory[]
+  User         User[]
+}
+
+model MenuCategory {
+  id                          Int                           @id @default(autoincrement())
+  name                        String
+  MenuCategoryMenu            MenuCategoryMenu[]
+  createdAt                   DateTime                      @default(now())
+  updatedAt                   DateTime                      @default(now())
+  isArchived                  Boolean                       @default(false)
+  MenuCategoryCompany         Company                       @relation(fields: [companyId], references: [id])
+  companyId                   Int
+  DisableLocationMenuCategory DisableLocationMenuCategory[]
+}
+
+model Menu {
+  id                  Int                   @id @default(autoincrement())
+  name                String                @unique
+  price               Int
+  assetUrl            String?
+  MenuCategoryMenu    MenuCategoryMenu[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now())
+  isArchived          Boolean               @default(false)
+  DisableLocationMenu DisableLocationMenu[]
+  MenuAddonCategory   MenuAddonCategory[]
+  Order               Order[]
+}
+
+model MenuCategoryMenu {
+  id             Int          @id @default(autoincrement())
+  menuCategory   MenuCategory @relation(fields: [menuCategoryId], references: [id])
+  menuCategoryId Int
+  menu           Menu         @relation(fields: [menuId], references: [id])
+  menuId         Int
+}
+
+model MenuAddonCategory {
+  id              Int           @id @default(autoincrement())
+  addOnCategory   AddonCategory @relation(fields: [addOnCategoryId], references: [id])
+  addOnCategoryId Int
+  menu            Menu          @relation(fields: [menuId], references: [id])
+  menuId          Int
+}
+
+model Location {
+  id                          Int                           @id @default(autoincrement())
+  name                        String
+  street                      String
+  city                        String
+  township                    String
+  companyId                   Int
+  Company                     Company                       @relation(fields: [companyId], references: [id])
+  createdAt                   DateTime                      @default(now())
+  updatedAt                   DateTime                      @default(now())
+  isArchived                  Boolean                       @default(false)
+  DisableLocationMenu         DisableLocationMenu[]
+  DisableLocationMenuCategory DisableLocationMenuCategory[]
+  Table                       Table[]
+}
+
+model Table {
+  id         Int      @id @default(autoincrement())
+  name       String
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId Int
+  assetUrl   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  isArchived Boolean  @default(false)
+  Order      Order[]
+}
+
+model AddonCategory {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  isRequired        Boolean             @default(false)
+  Addon             Addon[]
+  description       String?
+  assetUrl          String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @default(now())
+  isArchived        Boolean             @default(false)
+  MenuAddonCategory MenuAddonCategory[]
+}
+
+model Addon {
+  id              Int           @id @default(autoincrement())
+  name            String
+  price           Int           @default(0)
+  addonCategory   AddonCategory @relation(fields: [addonCategoryId], references: [id])
+  addonCategoryId Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now())
+  isArchived      Boolean       @default(false)
+  Order           Order[]
+}
+
+model DisableLocationMenuCategory {
+  id             Int          @id @default(autoincrement())
+  locationId     Int
+  location       Location     @relation(fields: [locationId], references: [id])
+  menuCategoryId Int
+  menuCategory   MenuCategory @relation(fields: [menuCategoryId], references: [id])
+}
+
+model DisableLocationMenu {
+  id         Int      @id @default(autoincrement())
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id])
+  menuId     Int
+  menu       Menu     @relation(fields: [menuId], references: [id])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  menuId     Int
+  addonId    Int?
+  quantity   Int
+  orderSeq   String
+  itemId     String
+  status     ORDERSTATUS
+  totalPrice Int
+  tableId    Int
+  isArchived Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  addon      Addon?      @relation(fields: [addonId], references: [id])
+  menu       Menu        @relation(fields: [menuId], references: [id])
+  table      Table       @relation(fields: [tableId], references: [id])
+}
+
+enum ORDERSTATUS {
+  PENDING
+  COOKING
+  COMPLETE
+}
