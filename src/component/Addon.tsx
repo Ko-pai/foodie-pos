@@ -12,6 +12,8 @@ import { Addon } from "@prisma/client";
 import React from "react";
 import { shallowEqual } from "react-redux";
 
+// change add on from desktop
+
 interface Prop {
   addonCategoryId: number;
   selectedAddon: Addon[];
