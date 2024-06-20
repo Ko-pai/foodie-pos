@@ -13,7 +13,7 @@ import React from "react";
 import { shallowEqual } from "react-redux";
 
 // change add on from desktop
-// change add on from laptop
+// change add on from laptop blah blah
 
 interface Prop {
   addonCategoryId: number;
