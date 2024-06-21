@@ -4,17 +4,42 @@ import { Box, Button, Divider, IconButton, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import React from "react";
-import { removeCart } from "@/store/slices/cartSlice";
+import { emptyCart, removeCart } from "@/store/slices/cartSlice";
 import { getTotalPriceCartItem } from "@/utils/generals";
 import { useRouter } from "next/router";
+import { createOrderSlice } from "@/store/slices/orderSlice";
+import { showSnackBar } from "@/store/slices/appSnackbarSlice";
 
 const CartItemDetail = () => {
   const { cartItems } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { tableId } = router.query;
 
   const deleteInCart = () => {};
-  
+
+  const confirmOrder = async () => {
+    if (!tableId) return alert("table id");
+
+    dispatch(
+      createOrderSlice({
+        tableId: Number(tableId),
+        cartItem: cartItems,
+        onSuccess() {
+          dispatch(emptyCart());
+          showSnackBar({
+            type: "success",
+            message: "Order created successfully",
+          });
+          router.push({
+            pathname: `/order/active-order`,
+            query: { tableId },
+          });
+        },
+      })
+    );
+    console.log("good");
+  };
 
   return (
     <Box
@@ -141,7 +166,11 @@ const CartItemDetail = () => {
         ""
       )}
 
-      <Button variant="contained" sx={{ width: "fit-content", mb: 2, mt: 2 }}>
+      <Button
+        variant="contained"
+        sx={{ width: "fit-content", mb: 2, mt: 2 }}
+        onClick={confirmOrder}
+      >
         Confirm Order
       </Button>
     </Box>
